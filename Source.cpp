@@ -1,4 +1,6 @@
 #include "DxLib.h"
+#include "Player.h"
+#include "Enemy.h"
 
 #define GAME_WIDTH 800
 #define GAME_HEIGHT 600
@@ -125,7 +127,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		MY_FPS_WAIT();		//FPSの処理（待つ）
 	}
 	DeleteGraph(BackGround.Handle);
-
+	Player_Finalize();
+	Enemy_Finalize();
 	DxLib_End();
 	return 0;
 
@@ -196,28 +199,44 @@ VOID MY_GAME_TITLE(VOID)
 	DrawGraph(BackGround.X, BackGround.Y, BackGround.Handle, TRUE);
 	DrawRotaGraph(GAME_WIDTH / 2, GAME_HEIGHT / 2, 0.7, 0, BackGround.Handle, FALSE);
 	//int Font = CreateFontToHandle("メイリオ", 20, 5, -1);
-	DrawRotaString(DrawX, DrawY, ExRateX, ExRateY, 0, 0, RotAngle, GetColor(255, 0, 0),GetColor(255, 0, 0), FALSE, GAME_WINDOW_NAME);
+	DrawRotaString(DrawX, DrawY - 30, ExRateX, ExRateY, 0, 0, RotAngle, GetColor(255, 0, 0),GetColor(255, 0, 0), FALSE, GAME_WINDOW_NAME);
 	DrawString(0, 0, "タイトル画面（スペースキーを押してください）", GetColor(255, 255, 255));
 	return;
 }
 
 VOID MY_GAME_PLAY(VOID)
 {
-	if (AllKeyState[KEY_INPUT_BACK] != 0)
+	Player_Initialize();
+	Enemy_Initialize();
+	while (ScreenFlip() == 0 && ProcessMessage() == 0 && ClearDrawScreen() == 0) 
 	{
+		Player_Draw();
+		Enemy_Draw();
+		Player_Update();
+		Enemy_Update();
+	}
+
+	/*if (Player.life <= 0)
+	{
+		MY_GAME_END(2);
 		GameSceneNow = (int)GAME_SCENE_END;
 	}
-	DrawString(0, 0, "エンド画面（バックスペースキーを押してください）", GetColor(255, 255, 255));
+	if(Enemy.life <= 0)
+	{
+		MY_GAME_END(1);
+		GameSceneNow = (int)GAME_SCENE_END;
+	}*/
 	return;
 }
 
-VOID MY_GAME_END(VOID)
+VOID MY_GAME_END(VOID)//勝ったほうを引数として取得
 {
 	if (AllKeyState[KEY_INPUT_RETURN] != 0)
 	{
 		GameSceneNow = (int)GAME_SCENE_TITLE;
 	}
 	DrawString(0, 0, "エンド画面（エンターキーを押してください）", GetColor(255, 255, 255));
+	DrawFormatString(GAME_WIDTH / 2, GAME_HEIGHT / 2, GetColor(255, 255, 255), "%sP WIN!\n");
 	return;
 }
 
